@@ -1,0 +1,76 @@
+// ---------------------------------------------------------
+//  TechHat Typing Master — Prisma Schema
+// ---------------------------------------------------------
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")        // Pooled connection (transactions)
+  directUrl = env("POSTGRES_URL_NON_POOLING")   // Direct connection (migrations)
+}
+
+// ---------------------------------------------------------
+//  Enums
+// ---------------------------------------------------------
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+// ---------------------------------------------------------
+//  Models
+// ---------------------------------------------------------
+
+model User {
+  id        String        @id @default(cuid())
+  name      String
+  email     String?       @unique   // optional — supports guest accounts
+  role      Role          @default(STUDENT)
+  createdAt DateTime      @default(now())
+
+  records   TypingRecord[]
+
+  @@map("users")
+}
+
+model Lesson {
+  id         String        @id @default(cuid())
+  title      String
+  content    String        // the text the student has to type
+  difficulty Difficulty    @default(BEGINNER)
+  createdAt  DateTime      @default(now())
+
+  records    TypingRecord[]
+
+  @@map("lessons")
+}
+
+model TypingRecord {
+  id         String   @id @default(cuid())
+  wpm        Int      // gross or net words-per-minute
+  accuracy   Int      // 0–100 percentage
+  timeSpent  Int      // duration in seconds
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  lessonId   String
+  lesson     Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([lessonId])
+  @@map("typing_records")
+}
