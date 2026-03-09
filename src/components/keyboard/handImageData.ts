@@ -67,11 +67,12 @@ for (let rowIdx = 0; rowIdx < KEYBOARD_ROWS.length; rowIdx++) {
   }
 }
 
-// Space -----------------------------------------------------------------------
+// Space — left thumb rests, right thumb presses space
+// Both images render at their normal absolute positions — no jump.
 const SPACE_PAIR: HandImagePair = {
-  left:    "space",
+  left:    RESTING_LEFT,
   right:   "space",
-  isSpace: true,
+  isSpace: false,
 };
 MAP.set(" ", SPACE_PAIR);
 
