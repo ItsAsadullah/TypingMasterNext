@@ -3,14 +3,12 @@
 // ---------------------------------------------------------
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL")        // Pooled connection (transactions)
-  directUrl = env("POSTGRES_URL_NON_POOLING")   // Direct connection (migrations)
+  provider = "postgresql"
+  // Connection URLs are managed in prisma.config.ts (Prisma 7)
 }
 
 // ---------------------------------------------------------

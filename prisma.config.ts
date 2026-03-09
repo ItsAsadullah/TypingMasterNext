@@ -9,6 +9,7 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: process.env["DATABASE_URL"]!,           // Pooled (migrations)
+    directUrl: process.env["DATABASE_URL_UNPOOLED"], // Direct (schema push)
   },
 });
