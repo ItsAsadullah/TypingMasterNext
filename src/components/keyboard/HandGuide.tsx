@@ -46,21 +46,42 @@ const WRIST = { x: 52,  y: 186, width: 222, height: 22, rx: 11 };
 interface HandGuideProps {
   hand:            Hand;
   activeFingerKey: Finger | null;
+  /** Pixel offset to slide the entire hand toward the target key. */
+  translate?: { dx: number; dy: number };
 }
 
-export default function HandGuide({ hand, activeFingerKey }: HandGuideProps) {
+export default function HandGuide({ hand, activeFingerKey, translate }: HandGuideProps) {
   const flipped = hand === "right";
   const fingers: Finger[] = ["pinky", "ring", "middle", "index", "thumb"];
 
+  // For the right hand (scaleX mirrored), dx must be negated so "move right"
+  // in keyboard-space still means "move right" in screen-space.
+  const tx = translate
+    ? (flipped ? -translate.dx : translate.dx)
+    : 0;
+  const ty = translate?.dy ?? 0;
+
   return (
-    <svg
-      viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-      width={SVG_W}
-      height={SVG_H}
-      xmlns="http://www.w3.org/2000/svg"
-      aria-label={`${hand} hand`}
-      style={{ transform: flipped ? "scaleX(-1)" : undefined, overflow: "visible" }}
+    // Outer div handles position translation with smooth spring-like transition.
+    // Inner SVG handles only the horizontal mirror for the right hand.
+    <div
+      style={{
+        transform: `translate(${tx}px, ${ty}px)`,
+        transition: "transform 0.13s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+      }}
     >
+      <svg
+        viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+        width={SVG_W}
+        height={SVG_H}
+        xmlns="http://www.w3.org/2000/svg"
+        aria-label={`${hand} hand`}
+        style={{
+          transform: flipped ? "scaleX(-1)" : undefined,
+          overflow: "visible",
+          display: "block",
+        }}
+      >
       {/* ── Palm ── */}
       <rect
         x={PALM.x} y={PALM.y}
@@ -140,6 +161,7 @@ export default function HandGuide({ hand, activeFingerKey }: HandGuideProps) {
           </g>
         );
       })}
-    </svg>
+      </svg>
+    </div>
   );
 }

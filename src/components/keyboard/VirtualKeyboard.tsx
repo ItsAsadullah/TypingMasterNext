@@ -8,13 +8,61 @@ import {
   HOME_ROW_KEYS,
   getFingerForChar,
   type Finger,
+  type Hand,
   type KeyDef,
 } from "./keyboardData";
 import HandGuide from "./HandGuide";
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  Key position map (built once, static)
+//  KEY_PX = h-11 (44px), KEY_GAP = gap-1 (4px), ROW_GAP = gap-1.5 (6px),
+//  KB_PAD = p-3 (12px)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const KEY_PX  = 44;   // key width/height unit (2.75rem)
+const KEY_GAP = 4;    // flex gap-1
+const ROW_GAP = 6;    // flex gap-1.5
+const KB_PAD  = 12;   // p-3 keyboard padding
+
+/** Pixel center {x, y} of every character key inside the keyboard container */
+function buildKeyPosMap(): Map<string, { x: number; y: number }> {
+  const map = new Map<string, { x: number; y: number }>();
+  let y = KB_PAD + KEY_PX / 2;   // vertical center of first row
+  for (const row of KEYBOARD_ROWS) {
+    let x = KB_PAD;
+    for (const key of row) {
+      const w = (key.width ?? 1) * KEY_PX;
+      const cx = x + w / 2;
+      for (const ch of key.chars) map.set(ch, { x: cx, y });
+      x += w + KEY_GAP;
+    }
+    y += KEY_PX + ROW_GAP;
+  }
+  return map;
+}
+
+const KEY_POS_MAP = buildKeyPosMap();
+
+/**
+ * "Home" key character for each finger.
+ * Used to calculate how far the hand must travel from rest position.
+ */
+const FINGER_HOME_CHAR: Record<Hand, Record<Finger, string>> = {
+  left:  { pinky: "a", ring: "s", middle: "d", index: "f", thumb: " " },
+  right: { pinky: ";", ring:  "l", middle: "k", index: "j", thumb: " " },
+};
+
+/**
+ * Damping  — the hand SVG shifts 65% of the actual key-distance so the
+ * motion looks natural without flying off-screen.
+ */
+const DAMPING = 0.65;
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  Types
 // ─────────────────────────────────────────────────────────────────────────────
+
+export interface HandOffset { dx: number; dy: number }
 
 interface VirtualKeyboardProps {
   /**
@@ -106,6 +154,35 @@ export default function VirtualKeyboard({
     return null;
   }, [nextExpectedChar]);
 
+  // ── Hand translation offsets (typing.com-style movement) ─────────────
+  const { leftOffset, rightOffset } = useMemo<{
+    leftOffset:  HandOffset;
+    rightOffset: HandOffset;
+  }>(() => {
+    const zero: HandOffset = { dx: 0, dy: 0 };
+    if (!nextExpectedChar || !targetFinger) return { leftOffset: zero, rightOffset: zero };
+
+    // Look up target key center (try lowercase first)
+    const targetPos =
+      KEY_POS_MAP.get(nextExpectedChar) ??
+      KEY_POS_MAP.get(nextExpectedChar.toLowerCase());
+    if (!targetPos) return { leftOffset: zero, rightOffset: zero };
+
+    // Home key for the responsible finger
+    const homeChar = FINGER_HOME_CHAR[targetFinger.hand][targetFinger.finger];
+    const homePos  = KEY_POS_MAP.get(homeChar);
+    if (!homePos) return { leftOffset: zero, rightOffset: zero };
+
+    const offset: HandOffset = {
+      dx: (targetPos.x - homePos.x) * DAMPING,
+      dy: (targetPos.y - homePos.y) * DAMPING,
+    };
+
+    return targetFinger.hand === "left"
+      ? { leftOffset: offset,  rightOffset: zero }
+      : { leftOffset: zero,    rightOffset: offset };
+  }, [nextExpectedChar, targetFinger]);
+
   return (
     <div className="flex flex-col items-center select-none">
 
@@ -174,15 +251,17 @@ export default function VirtualKeyboard({
         {showHands && (
           <div
             className="relative z-20 -mt-32 flex pointer-events-none"
-            style={{ opacity: 0.68 }}
+            style={{ opacity: 0.70 }}
           >
             <HandGuide
               hand="left"
               activeFingerKey={targetFinger?.hand === "left" ? targetFinger.finger : null}
+              translate={leftOffset}
             />
             <HandGuide
               hand="right"
               activeFingerKey={targetFinger?.hand === "right" ? targetFinger.finger : null}
+              translate={rightOffset}
             />
           </div>
         )}
