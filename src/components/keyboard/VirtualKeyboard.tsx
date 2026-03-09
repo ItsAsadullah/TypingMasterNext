@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   KEYBOARD_ROWS,
   FINGER_COLOR,
@@ -89,64 +89,77 @@ function KeyCap({ keyDef, isActive }: KeyCapProps) {
 //      land right around the home row and the active key row above/below it.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const HAND_OVERLAY_TOP_PX = 20;  // px from keyboard top → top of hand image
-const HAND_IMAGE_HEIGHT   = 640; // px — large enough to look like typing.com
+const HAND_OVERLAY_TOP_PX = 10;  // px from keyboard top → top of hand image
+const HAND_IMAGE_HEIGHT   = 760; // px — fills keyboard + pours below like typing.com
+const CROSSFADE_DURATION  = 120; // ms — seamless crossfade between poses
 
 interface HandOverlayProps {
   nextExpectedChar: string | null;
 }
 
 function HandOverlay({ nextExpectedChar }: HandOverlayProps) {
-  const { left, right, isSpace } = useMemo(
-    () => getHandImages(nextExpectedChar),
-    [nextExpectedChar]
-  );
+  // current = the pose we want to show RIGHT NOW
+  const current = useMemo(() => getHandImages(nextExpectedChar), [nextExpectedChar]);
 
-  const commonImgStyle: React.CSSProperties = {
+  // prev = the pose we're crossfading FROM
+  const [prev, setPrev] = useState(() => current);
+  // blending: true while CSS opacity transition is in-flight
+  const [blending, setBlending] = useState(false);
+
+  useEffect(() => {
+    // Skip if pose didn't actually change
+    if (current.left === prev.left && current.right === prev.right) return;
+    // Start crossfade: current fades IN (opacity 0→1), prev fades OUT (opacity 1→0)
+    setBlending(true);
+    const t = setTimeout(() => {
+      setPrev(current);   // prev catches up
+      setBlending(false); // reset — only prev layer is visible again
+    }, CROSSFADE_DURATION);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current]);
+
+  const halfStyle: React.CSSProperties = {
     height: `${HAND_IMAGE_HEIGHT}px`,
     width: "50%",
     objectFit: "contain",
     objectPosition: "top center",
   };
 
-  if (isSpace) {
-    return (
-      <div
-        className="absolute left-0 right-0 pointer-events-none z-20 flex"
-        style={{ top: `${HAND_OVERLAY_TOP_PX}px` }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/hands/space.png"
-          alt="Press space"
-          style={{ height: `${HAND_IMAGE_HEIGHT}px`, width: "100%", objectFit: "contain", objectPosition: "top center" }}
-          className="opacity-85"
-        />
-      </div>
-    );
-  }
+  const layerStyle = (opacity: number): React.CSSProperties => ({
+    position: "absolute",
+    top: 0, left: 0, right: 0,
+    display: "flex",
+    opacity,
+    transition: `opacity ${CROSSFADE_DURATION}ms ease-in-out`,
+    pointerEvents: "none",
+  });
+
+  const renderLayer = (data: ReturnType<typeof getHandImages>, opacity: number) => (
+    <div style={layerStyle(opacity)}>
+      {data.isSpace ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src="/hands/space.png" alt="" style={{ ...halfStyle, width: "100%" }} />
+      ) : (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`/hands/${data.left}.png`}  alt="left hand"  style={halfStyle} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`/hands/${data.right}.png`} alt="right hand" style={halfStyle} />
+        </>
+      )}
+    </div>
+  );
 
   return (
     <div
-      className="absolute left-0 right-0 pointer-events-none z-20 flex"
-      style={{ top: `${HAND_OVERLAY_TOP_PX}px` }}
+      className="absolute left-0 right-0 pointer-events-none z-20"
+      style={{ top: `${HAND_OVERLAY_TOP_PX}px`, height: `${HAND_IMAGE_HEIGHT}px` }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        key={left}
-        src={`/hands/${left}.png`}
-        alt="left hand"
-        style={commonImgStyle}
-        className="opacity-85"
-      />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        key={right}
-        src={`/hands/${right}.png`}
-        alt="right hand"
-        style={commonImgStyle}
-        className="opacity-85"
-      />
+      {/* Layer A — previous pose (fades OUT when blending) */}
+      {renderLayer(prev, blending ? 0 : 1)}
+      {/* Layer B — incoming pose (fades IN when blending) */}
+      {renderLayer(current, blending ? 1 : 0)}
     </div>
   );
 }
@@ -251,7 +264,7 @@ export default function VirtualKeyboard({
       </div>
 
       {/* Spacer so content below the keyboard clears the overflowing hands */}
-      {showHands && <div style={{ height: "460px" }} />}
+      {showHands && <div style={{ height: "530px" }} />}
     </div>
   );
 }
