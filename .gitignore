@@ -47,3 +47,4 @@ next-env.d.ts
 # Sensitive files
 *.txt
 git token.txt
+.env*.local
