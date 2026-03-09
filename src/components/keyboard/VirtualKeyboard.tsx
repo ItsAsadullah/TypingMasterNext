@@ -101,7 +101,7 @@ function HandOverlay({ nextExpectedChar }: HandOverlayProps) {
   return (
     // .hands: position:absolute; height:100%; left:0; top:-8%; width:100%
     <div className="pointer-events-none z-20" style={{
-      position: "absolute", left: 0, top: "-8%", width: "100%", height: "100%",
+      position: "absolute", left: 0, top: "-13%", width: "100%", height: "100%",
     }}>
       {isSpace ? (
         // space — same position as right hand
