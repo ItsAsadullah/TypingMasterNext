@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import {
   KEYBOARD_ROWS,
   FINGER_COLOR,
@@ -73,9 +73,21 @@ function KeyCap({ keyDef, isActive }: KeyCapProps) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  HandOverlay — PNG images from typing.com
-//  Two images sit side-by-side, absolutely anchored to the bottom of the
-//  keyboard wrapper. Each image already shows the correct finger pose.
+//
+//  Layout math (all in px, matching keyboard CSS):
+//    key height  = h-11  = 44px
+//    row gap     = gap-1.5 = 6px
+//    kbd padding = p-3   = 12px
+//    rows 0-4: numbers, QWERTY, home, ZXCV, space
+//
+//  Home row (row 2) top-edge = 12 + 2*(44+6) = 112 px from keyboard top.
+//  The PNG hands have fingers in the TOP ~45 % of the image and
+//  palms/wrists in the bottom ~55 %.  We position the overlay so the
+//  top of the image sits exactly at the home-row top-edge, which puts
+//  fingers over the home+ZXCV rows and wrists hanging below the keyboard.
 // ─────────────────────────────────────────────────────────────────────────────
+
+const HOME_ROW_OFFSET_PX = 108; // px from keyboard top → top of hand image
 
 interface HandOverlayProps {
   nextExpectedChar: string | null;
@@ -87,37 +99,50 @@ function HandOverlay({ nextExpectedChar }: HandOverlayProps) {
     [nextExpectedChar]
   );
 
+  const commonImgStyle: React.CSSProperties = {
+    height: "320px",
+    width: "50%",
+    objectFit: "contain",
+    objectPosition: "top center",
+  };
+
   if (isSpace) {
     return (
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none z-20 w-full">
+      <div
+        className="absolute left-0 right-0 pointer-events-none z-20 flex"
+        style={{ top: `${HOME_ROW_OFFSET_PX}px` }}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/hands/space.png"
           alt="Press space"
-          className="w-full object-contain opacity-80"
-          style={{ maxHeight: "220px" }}
+          style={{ height: "320px", width: "100%", objectFit: "contain", objectPosition: "top center" }}
+          className="opacity-85"
         />
       </div>
     );
   }
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 pointer-events-none z-20 flex">
+    <div
+      className="absolute left-0 right-0 pointer-events-none z-20 flex"
+      style={{ top: `${HOME_ROW_OFFSET_PX}px` }}
+    >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         key={left}
         src={`/hands/${left}.png`}
         alt="left hand"
-        className="w-1/2 object-contain object-bottom opacity-80"
-        style={{ maxHeight: "220px", transition: "src 0s" }}
+        style={commonImgStyle}
+        className="opacity-85"
       />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         key={right}
         src={`/hands/${right}.png`}
         alt="right hand"
-        className="w-1/2 object-contain object-bottom opacity-80"
-        style={{ maxHeight: "220px", transition: "src 0s" }}
+        style={commonImgStyle}
+        className="opacity-85"
       />
     </div>
   );
@@ -174,10 +199,12 @@ export default function VirtualKeyboard({
       )}
 
       {/* ── Keyboard + hand overlay wrapper ── */}
-      <div
-        className="relative"
-        style={{ paddingBottom: showHands ? "200px" : undefined }}
-      >
+      {/*
+        overflow-visible lets the hand wrists extend below the keyboard card.
+        The wrapper has NO padding-bottom — instead, we add a spacer div
+        below so the page content isn't hidden under the hands.
+      */}
+      <div className="relative" style={{ overflow: "visible" }}>
         {/* Keyboard */}
         <div
           className="relative z-10 rounded-2xl bg-white p-3 shadow-lg border border-gray-200"
@@ -219,6 +246,9 @@ export default function VirtualKeyboard({
         {/* ── PNG hand overlay ── */}
         {showHands && <HandOverlay nextExpectedChar={nextExpectedChar} />}
       </div>
+
+      {/* Spacer so content below the keyboard clears the overflowing hands */}
+      {showHands && <div style={{ height: "210px" }} />}
     </div>
   );
 }
