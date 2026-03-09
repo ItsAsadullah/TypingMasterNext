@@ -80,14 +80,17 @@ function KeyCap({ keyDef, isActive }: KeyCapProps) {
 //    kbd padding = p-3   = 12px
 //    rows 0-4: numbers, QWERTY, home, ZXCV, space
 //
-//  Home row (row 2) top-edge = 12 + 2*(44+6) = 112 px from keyboard top.
-//  The PNG hands have fingers in the TOP ~45 % of the image and
-//  palms/wrists in the bottom ~55 %.  We position the overlay so the
-//  top of the image sits exactly at the home-row top-edge, which puts
-//  fingers over the home+ZXCV rows and wrists hanging below the keyboard.
+//  Layout targets (matching typing.com style):
+//    • Each hand image spans the FULL half-width of the keyboard.
+//    • Image is tall (520 px) so fingers cover num→space rows and
+//      wrists/palms pour generously below the keyboard card.
+//    • We anchor the TOP of the overlay at QWERTY-row level (~50 px)
+//      so the finger tips (≈ top 25 % of image = ~130 px from overlay top)
+//      land right around the home row and the active key row above/below it.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const HOME_ROW_OFFSET_PX = 108; // px from keyboard top → top of hand image
+const HAND_OVERLAY_TOP_PX = 30;  // px from keyboard top → top of hand image
+const HAND_IMAGE_HEIGHT   = 520; // px — large enough to look like typing.com
 
 interface HandOverlayProps {
   nextExpectedChar: string | null;
@@ -100,7 +103,7 @@ function HandOverlay({ nextExpectedChar }: HandOverlayProps) {
   );
 
   const commonImgStyle: React.CSSProperties = {
-    height: "320px",
+    height: `${HAND_IMAGE_HEIGHT}px`,
     width: "50%",
     objectFit: "contain",
     objectPosition: "top center",
@@ -110,13 +113,13 @@ function HandOverlay({ nextExpectedChar }: HandOverlayProps) {
     return (
       <div
         className="absolute left-0 right-0 pointer-events-none z-20 flex"
-        style={{ top: `${HOME_ROW_OFFSET_PX}px` }}
+        style={{ top: `${HAND_OVERLAY_TOP_PX}px` }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/hands/space.png"
           alt="Press space"
-          style={{ height: "320px", width: "100%", objectFit: "contain", objectPosition: "top center" }}
+          style={{ height: `${HAND_IMAGE_HEIGHT}px`, width: "100%", objectFit: "contain", objectPosition: "top center" }}
           className="opacity-85"
         />
       </div>
@@ -126,7 +129,7 @@ function HandOverlay({ nextExpectedChar }: HandOverlayProps) {
   return (
     <div
       className="absolute left-0 right-0 pointer-events-none z-20 flex"
-      style={{ top: `${HOME_ROW_OFFSET_PX}px` }}
+      style={{ top: `${HAND_OVERLAY_TOP_PX}px` }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -248,7 +251,7 @@ export default function VirtualKeyboard({
       </div>
 
       {/* Spacer so content below the keyboard clears the overflowing hands */}
-      {showHands && <div style={{ height: "210px" }} />}
+      {showHands && <div style={{ height: "360px" }} />}
     </div>
   );
 }
