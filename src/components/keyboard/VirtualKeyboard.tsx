@@ -75,94 +75,72 @@ function KeyCap({ keyDef, isActive }: KeyCapProps) {
 //  HandOverlay — PNG images from typing.com
 //
 //  Layout math (all in px, matching keyboard CSS):
-//    key height  = h-11  = 44px
-//    row gap     = gap-1.5 = 6px
-//    kbd padding = p-3   = 12px
-//    rows 0-4: numbers, QWERTY, home, ZXCV, space
+//  EXACT typing.com CSS (extracted from app.min.695.css):
 //
-//  Layout targets — pixel-perfect like typing.com:
+//  .hands          { position:absolute; height:100%; left:0; top:3%; width:100% }
+//  .hand           { position:absolute }
+//  .hand--left     { left:-20.5%; top:-3%; width:74.3% }
+//  .hand--right    { left:33.3%;  top:0;   width:84.2% }
+//  .keyboard--hands{ margin-bottom:250px }
 //
-//  The typing.com hand PNGs have natural dimensions:
-//    left-*.png  = 594 × 652 px
-//    right-*.png = 672 × 652 px
-//  Together they span 1266 px at 100% scale.
-//  Correct split:  left = 594/1266 = 46.92%   right = 672/1266 = 53.08%
-//  We render each with width=% and height=auto → NO objectFit letterboxing.
-//  The images scale uniformly with the keyboard so fingers stay on keys.
+//  The hands overflow the keyboard on all sides — left hand bleeds off the left
+//  edge, right hand off the right edge, both bleed below with wrists.
+//  height:auto on each <img> so they scale with the keyboard width naturally.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const LEFT_W  = "46.92%";
-const RIGHT_W = "53.08%";
-const HAND_OVERLAY_TOP_PX = 0; // px — align hand image top to keyboard card top
-const CROSSFADE_DURATION  = 120; // ms
+const CROSSFADE_MS = 120;
 
 interface HandOverlayProps {
   nextExpectedChar: string | null;
 }
 
 function HandOverlay({ nextExpectedChar }: HandOverlayProps) {
-  // current = the pose we want to show RIGHT NOW
   const current = useMemo(() => getHandImages(nextExpectedChar), [nextExpectedChar]);
-
-  // prev = the pose we're crossfading FROM
   const [prev, setPrev] = useState(() => current);
-  // blending: true while CSS opacity transition is in-flight
   const [blending, setBlending] = useState(false);
 
   useEffect(() => {
-    // Skip if pose didn't actually change
     if (current.left === prev.left && current.right === prev.right) return;
-    // Start crossfade: current fades IN (opacity 0→1), prev fades OUT (opacity 1→0)
     setBlending(true);
-    const t = setTimeout(() => {
-      setPrev(current);   // prev catches up
-      setBlending(false); // reset — only prev layer is visible again
-    }, CROSSFADE_DURATION);
+    const t = setTimeout(() => { setPrev(current); setBlending(false); }, CROSSFADE_MS);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current]);
 
-  // Natural-ratio helpers — NO objectFit, so there is zero letterbox gap.
-  // height:auto scales proportionally with the percentage width above.
-  const leftStyle:  React.CSSProperties = { width: LEFT_W,  height: "auto", display: "block", flexShrink: 0 };
-  const rightStyle: React.CSSProperties = { width: RIGHT_W, height: "auto", display: "block", flexShrink: 0 };
-
-  const layerStyle = (opacity: number): React.CSSProperties => ({
-    position: "absolute",
-    top: 0, left: 0, right: 0,
-    display: "flex",
-    alignItems: "flex-start",
-    opacity,
-    transition: `opacity ${CROSSFADE_DURATION}ms ease-in-out`,
-    pointerEvents: "none",
-  });
-
-  const renderLayer = (data: ReturnType<typeof getHandImages>, opacity: number) => (
-    <div style={layerStyle(opacity)}>
+  // Render one set of hand images with given opacity
+  const renderPose = (data: ReturnType<typeof getHandImages>, opacity: number) => (
+    <div style={{
+      position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
+      opacity, transition: `opacity ${CROSSFADE_MS}ms ease-in-out`,
+      pointerEvents: "none",
+    }}>
       {data.isSpace ? (
-        /* space.png is 672×652 — show it centred over the space-bar area */
+        // space.png — centered over spacebar, same sizing approach
         // eslint-disable-next-line @next/next/no-img-element
-        <img src="/hands/space.png" alt="" style={{ width: "100%", height: "auto", display: "block" }} />
+        <img src="/hands/space.png" alt=""
+          style={{ position: "absolute", left: "-20.5%", top: "-3%", width: "141%", height: "auto" }} />
       ) : (
         <>
+          {/* .hand--left: left:-20.5%; top:-3%; width:74.3% */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`/hands/${data.left}.png`}  alt="left hand"  style={leftStyle}  />
+          <img src={`/hands/${data.left}.png`}  alt="left hand"
+            style={{ position: "absolute", left: "-20.5%", top: "-3%", width: "74.3%", height: "auto" }} />
+          {/* .hand--right: left:33.3%; top:0; width:84.2% */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`/hands/${data.right}.png`} alt="right hand" style={rightStyle} />
+          <img src={`/hands/${data.right}.png`} alt="right hand"
+            style={{ position: "absolute", left: "33.3%",  top: 0,      width: "84.2%", height: "auto" }} />
         </>
       )}
     </div>
   );
 
   return (
-    <div
-      className="absolute left-0 right-0 pointer-events-none z-20"
-      style={{ top: `${HAND_OVERLAY_TOP_PX}px` }}
-    >
-      {/* Layer A — previous pose (fades OUT when blending) */}
-      {renderLayer(prev, blending ? 0 : 1)}
-      {/* Layer B — incoming pose (fades IN when blending) */}
-      {renderLayer(current, blending ? 1 : 0)}
+    // .hands: position:absolute; height:100%; left:0; top:3%; width:100%
+    <div className="pointer-events-none z-20" style={{
+      position: "absolute", left: 0, top: "3%", width: "100%", height: "100%",
+    }}>
+      {renderPose(prev,    blending ? 0 : 1)}
+      {renderPose(current, blending ? 1 : 0)}
     </div>
   );
 }
@@ -219,11 +197,10 @@ export default function VirtualKeyboard({
 
       {/* ── Keyboard + hand overlay wrapper ── */}
       {/*
-        overflow-visible lets the hand wrists extend below the keyboard card.
-        The wrapper has NO padding-bottom — instead, we add a spacer div
-        below so the page content isn't hidden under the hands.
+        overflow:visible lets hands bleed past all 4 edges like typing.com.
+        .keyboard--hands adds 250px bottom margin for wrist space.
       */}
-      <div className="relative" style={{ overflow: "visible" }}>
+      <div className="relative" style={{ overflow: "visible", marginBottom: showHands ? "250px" : undefined }}>
         {/* Keyboard */}
         <div
           className="relative z-10 rounded-2xl bg-white p-3 shadow-lg border border-gray-200"
@@ -266,8 +243,7 @@ export default function VirtualKeyboard({
         {showHands && <HandOverlay nextExpectedChar={nextExpectedChar} />}
       </div>
 
-      {/* Spacer so content below the keyboard clears the overflowing hands */}
-      {showHands && <div style={{ height: "200px" }} />}
+      {/* margin-bottom on wrapper handles spacing — no extra spacer needed */}
     </div>
   );
 }
