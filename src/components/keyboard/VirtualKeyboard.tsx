@@ -99,9 +99,9 @@ function HandOverlay({ nextExpectedChar }: HandOverlayProps) {
   );
 
   return (
-    // .hands: position:absolute; height:100%; left:0; top:-20%; width:100%
+    // .hands: position:absolute; height:100%; left:0; top:-8%; width:100%
     <div className="pointer-events-none z-20" style={{
-      position: "absolute", left: 0, top: "-20%", width: "100%", height: "100%",
+      position: "absolute", left: 0, top: "-8%", width: "100%", height: "100%",
     }}>
       {isSpace ? (
         // space — same position as right hand
@@ -110,14 +110,14 @@ function HandOverlay({ nextExpectedChar }: HandOverlayProps) {
           style={{ position: "absolute", left: "33.3%", top: 0, width: "84.2%", height: "auto" }} />
       ) : (
         <>
-          {/* .hand--left: left:-20.5%; top:-13%; width:74.3% */}
+          {/* .hand--left: left:-20.5%; top:-3%; width:74.3% */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={`/hands/${left}.png`}  alt="left hand"
-            style={{ position: "absolute", left: "-20.5%", top: "-13%", width: "74.3%", height: "auto" }} />
-          {/* .hand--right: left:33.3%; top:-10%; width:84.2% */}
+            style={{ position: "absolute", left: "-20.5%", top: "-3%", width: "74.3%", height: "auto" }} />
+          {/* .hand--right: left:33.3%; top:0; width:84.2% */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={`/hands/${right}.png`} alt="right hand"
-            style={{ position: "absolute", left: "33.3%",  top: "-10%", width: "84.2%", height: "auto" }} />
+            style={{ position: "absolute", left: "33.3%",  top: 0, width: "84.2%", height: "auto" }} />
         </>
       )}
     </div>
