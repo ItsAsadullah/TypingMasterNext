@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo } from "react";
 import {
   KEYBOARD_ROWS,
   FINGER_COLOR,
@@ -78,69 +78,50 @@ function KeyCap({ keyDef, isActive }: KeyCapProps) {
 //  EXACT typing.com CSS (extracted from app.min.695.css):
 //
 //  .hands          { position:absolute; height:100%; left:0; top:3%; width:100% }
-//  .hand           { position:absolute }
+//  .hand           { position:absolute }   ← NO transition! instant src swap.
 //  .hand--left     { left:-20.5%; top:-3%; width:74.3% }
 //  .hand--right    { left:33.3%;  top:0;   width:84.2% }
+//  .hand--single-center { left:50%; top:0; transform:translateX(-50%) }
 //  .keyboard--hands{ margin-bottom:250px }
 //
-//  The hands overflow the keyboard on all sides — left hand bleeds off the left
-//  edge, right hand off the right edge, both bleed below with wrists.
-//  height:auto on each <img> so they scale with the keyboard width naturally.
+//  typing.com does INSTANT image swap — seamless look comes from the PNGs
+//  sharing the same palm/wrist position, NOT from CSS transitions.
 // ─────────────────────────────────────────────────────────────────────────────
-
-const CROSSFADE_MS = 120;
 
 interface HandOverlayProps {
   nextExpectedChar: string | null;
 }
 
 function HandOverlay({ nextExpectedChar }: HandOverlayProps) {
-  const current = useMemo(() => getHandImages(nextExpectedChar), [nextExpectedChar]);
-  const [prev, setPrev] = useState(() => current);
-  const [blending, setBlending] = useState(false);
+  const { left, right, isSpace } = useMemo(
+    () => getHandImages(nextExpectedChar),
+    [nextExpectedChar]
+  );
 
-  useEffect(() => {
-    if (current.left === prev.left && current.right === prev.right) return;
-    setBlending(true);
-    const t = setTimeout(() => { setPrev(current); setBlending(false); }, CROSSFADE_MS);
-    return () => clearTimeout(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [current]);
-
-  // Render one set of hand images with given opacity
-  const renderPose = (data: ReturnType<typeof getHandImages>, opacity: number) => (
-    <div style={{
-      position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
-      opacity, transition: `opacity ${CROSSFADE_MS}ms ease-in-out`,
-      pointerEvents: "none",
+  return (
+    // .hands: position:absolute; height:100%; left:0; top:-10%; width:100%
+    // top is negative to push fingers up onto the key rows
+    <div className="pointer-events-none z-20" style={{
+      position: "absolute", left: 0, top: "-10%", width: "100%", height: "100%",
     }}>
-      {data.isSpace ? (
-        // space.png — centered over spacebar, same sizing approach
+      {isSpace ? (
+        // .hand--single-center: left:50%; top:0; transform:translateX(-50%); width:84.2%
         // eslint-disable-next-line @next/next/no-img-element
         <img src="/hands/space.png" alt=""
-          style={{ position: "absolute", left: "-20.5%", top: "-3%", width: "141%", height: "auto" }} />
+          style={{ position: "absolute", left: "50%", top: 0, width: "84.2%", height: "auto",
+                   transform: "translateX(-50%)" }} />
       ) : (
         <>
           {/* .hand--left: left:-20.5%; top:-3%; width:74.3% */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`/hands/${data.left}.png`}  alt="left hand"
+          <img src={`/hands/${left}.png`}  alt="left hand"
             style={{ position: "absolute", left: "-20.5%", top: "-3%", width: "74.3%", height: "auto" }} />
           {/* .hand--right: left:33.3%; top:0; width:84.2% */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`/hands/${data.right}.png`} alt="right hand"
+          <img src={`/hands/${right}.png`} alt="right hand"
             style={{ position: "absolute", left: "33.3%",  top: 0,      width: "84.2%", height: "auto" }} />
         </>
       )}
-    </div>
-  );
-
-  return (
-    // .hands: position:absolute; height:100%; left:0; top:3%; width:100%
-    <div className="pointer-events-none z-20" style={{
-      position: "absolute", left: 0, top: "3%", width: "100%", height: "100%",
-    }}>
-      {renderPose(prev,    blending ? 0 : 1)}
-      {renderPose(current, blending ? 1 : 0)}
     </div>
   );
 }
