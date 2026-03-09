@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Keyboard, Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 
-export default function LoginPage() {
-  const router = useRouter();
+// Inner component — reads searchParams (requires Suspense wrapper)
+function LoginForm() {
+  const router       = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl  = searchParams.get("callbackUrl") ?? "/dashboard";
   const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
   const [error,    setError]    = useState("");
@@ -29,7 +32,7 @@ export default function LoginPage() {
     if (res?.error) {
       setError("Invalid email or password.");
     } else {
-      router.push("/dashboard");
+      router.push(callbackUrl);
       router.refresh();
     }
   }
@@ -105,5 +108,15 @@ export default function LoginPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 h-96 animate-pulse" />
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

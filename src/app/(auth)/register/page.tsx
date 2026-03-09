@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Keyboard, User, Mail, Lock, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
@@ -32,7 +33,20 @@ export default function RegisterPage() {
       setError(data.error ?? "Registration failed.");
     } else {
       setSuccess(true);
-      setTimeout(() => router.push("/login"), 1500);
+      // Auto sign-in after registration, then go to dashboard
+      const signInRes = await signIn("credentials", {
+        email: email.toLowerCase(),
+        password,
+        redirect: false,
+      });
+      setTimeout(() => {
+        if (signInRes?.ok) {
+          router.push("/dashboard");
+        } else {
+          router.push("/login");
+        }
+        router.refresh();
+      }, 1000);
     }
   }
 
@@ -62,7 +76,7 @@ export default function RegisterPage() {
       {success && (
         <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm rounded-lg px-4 py-3 mb-5">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
-          Account created! Redirecting to login…
+          Account created! Signing you in…
         </div>
       )}
 
