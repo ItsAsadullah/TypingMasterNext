@@ -89,8 +89,8 @@ function KeyCap({ keyDef, isActive }: KeyCapProps) {
 //      land right around the home row and the active key row above/below it.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const HAND_OVERLAY_TOP_PX = 30;  // px from keyboard top → top of hand image
-const HAND_IMAGE_HEIGHT   = 520; // px — large enough to look like typing.com
+const HAND_OVERLAY_TOP_PX = 20;  // px from keyboard top → top of hand image
+const HAND_IMAGE_HEIGHT   = 640; // px — large enough to look like typing.com
 
 interface HandOverlayProps {
   nextExpectedChar: string | null;
@@ -251,7 +251,7 @@ export default function VirtualKeyboard({
       </div>
 
       {/* Spacer so content below the keyboard clears the overflowing hands */}
-      {showHands && <div style={{ height: "360px" }} />}
+      {showHands && <div style={{ height: "460px" }} />}
     </div>
   );
 }
