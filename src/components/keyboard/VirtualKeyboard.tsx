@@ -35,7 +35,7 @@ interface KeyCapProps {
 function KeyCap({ keyDef, isActive }: KeyCapProps) {
   const finger    = keyDef.finger.finger;
   const colors    = FINGER_COLOR[finger];
-  const widthRem  = (keyDef.width ?? 1) * 2.75;
+  const widthRem  = (keyDef.width ?? 1) * 3.0;
   const isHomeRow = keyDef.chars.some((c) => HOME_ROW_KEYS.has(c));
 
   return (
@@ -80,18 +80,21 @@ function KeyCap({ keyDef, isActive }: KeyCapProps) {
 //    kbd padding = p-3   = 12px
 //    rows 0-4: numbers, QWERTY, home, ZXCV, space
 //
-//  Layout targets (matching typing.com style):
-//    • Each hand image spans the FULL half-width of the keyboard.
-//    • Image is tall (520 px) so fingers cover num→space rows and
-//      wrists/palms pour generously below the keyboard card.
-//    • We anchor the TOP of the overlay at QWERTY-row level (~50 px)
-//      so the finger tips (≈ top 25 % of image = ~130 px from overlay top)
-//      land right around the home row and the active key row above/below it.
+//  Layout targets — pixel-perfect like typing.com:
+//
+//  The typing.com hand PNGs have natural dimensions:
+//    left-*.png  = 594 × 652 px
+//    right-*.png = 672 × 652 px
+//  Together they span 1266 px at 100% scale.
+//  Correct split:  left = 594/1266 = 46.92%   right = 672/1266 = 53.08%
+//  We render each with width=% and height=auto → NO objectFit letterboxing.
+//  The images scale uniformly with the keyboard so fingers stay on keys.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const HAND_OVERLAY_TOP_PX = 10;  // px from keyboard top → top of hand image
-const HAND_IMAGE_HEIGHT   = 760; // px — fills keyboard + pours below like typing.com
-const CROSSFADE_DURATION  = 120; // ms — seamless crossfade between poses
+const LEFT_W  = "46.92%";
+const RIGHT_W = "53.08%";
+const HAND_OVERLAY_TOP_PX = 0; // px — align hand image top to keyboard card top
+const CROSSFADE_DURATION  = 120; // ms
 
 interface HandOverlayProps {
   nextExpectedChar: string | null;
@@ -119,17 +122,16 @@ function HandOverlay({ nextExpectedChar }: HandOverlayProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current]);
 
-  const halfStyle: React.CSSProperties = {
-    height: `${HAND_IMAGE_HEIGHT}px`,
-    width: "50%",
-    objectFit: "contain",
-    objectPosition: "top center",
-  };
+  // Natural-ratio helpers — NO objectFit, so there is zero letterbox gap.
+  // height:auto scales proportionally with the percentage width above.
+  const leftStyle:  React.CSSProperties = { width: LEFT_W,  height: "auto", display: "block", flexShrink: 0 };
+  const rightStyle: React.CSSProperties = { width: RIGHT_W, height: "auto", display: "block", flexShrink: 0 };
 
   const layerStyle = (opacity: number): React.CSSProperties => ({
     position: "absolute",
     top: 0, left: 0, right: 0,
     display: "flex",
+    alignItems: "flex-start",
     opacity,
     transition: `opacity ${CROSSFADE_DURATION}ms ease-in-out`,
     pointerEvents: "none",
@@ -138,14 +140,15 @@ function HandOverlay({ nextExpectedChar }: HandOverlayProps) {
   const renderLayer = (data: ReturnType<typeof getHandImages>, opacity: number) => (
     <div style={layerStyle(opacity)}>
       {data.isSpace ? (
+        /* space.png is 672×652 — show it centred over the space-bar area */
         // eslint-disable-next-line @next/next/no-img-element
-        <img src="/hands/space.png" alt="" style={{ ...halfStyle, width: "100%" }} />
+        <img src="/hands/space.png" alt="" style={{ width: "100%", height: "auto", display: "block" }} />
       ) : (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`/hands/${data.left}.png`}  alt="left hand"  style={halfStyle} />
+          <img src={`/hands/${data.left}.png`}  alt="left hand"  style={leftStyle}  />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`/hands/${data.right}.png`} alt="right hand" style={halfStyle} />
+          <img src={`/hands/${data.right}.png`} alt="right hand" style={rightStyle} />
         </>
       )}
     </div>
@@ -154,7 +157,7 @@ function HandOverlay({ nextExpectedChar }: HandOverlayProps) {
   return (
     <div
       className="absolute left-0 right-0 pointer-events-none z-20"
-      style={{ top: `${HAND_OVERLAY_TOP_PX}px`, height: `${HAND_IMAGE_HEIGHT}px` }}
+      style={{ top: `${HAND_OVERLAY_TOP_PX}px` }}
     >
       {/* Layer A — previous pose (fades OUT when blending) */}
       {renderLayer(prev, blending ? 0 : 1)}
@@ -264,7 +267,7 @@ export default function VirtualKeyboard({
       </div>
 
       {/* Spacer so content below the keyboard clears the overflowing hands */}
-      {showHands && <div style={{ height: "530px" }} />}
+      {showHands && <div style={{ height: "200px" }} />}
     </div>
   );
 }
