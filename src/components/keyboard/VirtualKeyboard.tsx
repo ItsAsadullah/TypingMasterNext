@@ -107,99 +107,86 @@ export default function VirtualKeyboard({
   }, [nextExpectedChar]);
 
   return (
-    <div className="flex flex-col items-center gap-4 select-none">
-      {/* ── Keyboard ── */}
-      <div
-        className="rounded-2xl bg-gray-100 p-3 shadow-lg border border-gray-300"
-        role="img"
-        aria-label="Virtual keyboard"
-      >
-        <div className="flex flex-col gap-1.5">
-          {KEYBOARD_ROWS.map((row, rowIdx) => (
-            <div key={rowIdx} className="flex gap-1">
-              {row.map((key, keyIdx) => {
-                const isActive = activeKey === key;
-                return (
-                  <KeyCap
-                    key={`${rowIdx}-${keyIdx}`}
-                    keyDef={key}
-                    isActive={isActive}
-                  />
-                );
-              })}
-            </div>
-          ))}
-        </div>
+    <div className="flex flex-col items-center select-none">
 
-        {/* Legend */}
-        <div className="mt-3 pt-3 border-t border-gray-300 flex flex-wrap gap-x-4 gap-y-1.5 justify-center">
-          {(["pinky", "ring", "middle", "index", "thumb"] as Finger[]).map(
-            (f) => (
-              <span key={f} className="flex items-center gap-1.5 text-[10px] text-gray-500 font-medium">
-                <span
-                  className={`inline-block w-2.5 h-2.5 rounded-full ${FINGER_COLOR[f].bg}`}
-                />
-                {f.charAt(0).toUpperCase() + f.slice(1)}
-              </span>
-            )
+      {/* ── Next-key badge (above keyboard) ── */}
+      {nextExpectedChar ? (
+        <div className="mb-3 flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white border border-gray-200 shadow-sm">
+          <span className="text-[11px] text-gray-400 font-medium tracking-wide">Next</span>
+          <div
+            className={[
+              "w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold text-white shadow-sm",
+              targetFinger ? FINGER_COLOR[targetFinger.finger].bg : "bg-gray-300",
+            ].join(" ")}
+          >
+            {nextExpectedChar === " " ? "⎵" : nextExpectedChar.toUpperCase()}
+          </div>
+          {targetFinger && (
+            <span className={`text-[11px] font-semibold capitalize ${FINGER_COLOR[targetFinger.finger].text}`}>
+              {targetFinger.hand} {targetFinger.finger}
+            </span>
           )}
         </div>
-      </div>
+      ) : (
+        <div className="mb-3 h-8" /> /* spacer */
+      )}
 
-      {/* ── Hand Guide ── */}
-      {showHands && (
-        <div className="flex items-end gap-8 mt-2">
-          <HandGuide
-            hand="left"
-            activeFingerKey={
-              targetFinger?.hand === "left" ? targetFinger.finger : null
-            }
-          />
+      {/* ── Keyboard + overlay wrapper ── */}
+      <div className="relative">
 
-          {/* Next-key hint bubble */}
-          <div className="flex flex-col items-center gap-2 mb-2">
-            {nextExpectedChar ? (
-              <>
-                <div className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">
-                  Next key
-                </div>
-                <div
-                  className={[
-                    "w-12 h-12 rounded-xl flex items-center justify-center",
-                    "text-xl font-bold shadow-md border-b-[3px] border-gray-300",
-                    targetFinger
-                      ? `${FINGER_COLOR[targetFinger.finger].bg} text-white border-transparent`
-                      : "bg-gray-200 text-gray-500",
-                  ].join(" ")}
-                >
-                  {nextExpectedChar === " " ? "⎵" : nextExpectedChar}
-                </div>
-                {targetFinger && (
-                  <div
-                    className={[
-                      "text-[10px] font-semibold",
-                      FINGER_COLOR[targetFinger.finger].text,
-                    ].join(" ")}
-                  >
-                    {targetFinger.hand} {targetFinger.finger}
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="w-12 h-12 rounded-xl bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-400 text-lg">
-                ✓
+        {/* Keyboard (z-10 so hands render on top) */}
+        <div
+          className="relative z-10 rounded-2xl bg-white p-3 shadow-lg border border-gray-200"
+          role="img"
+          aria-label="Virtual keyboard"
+        >
+          <div className="flex flex-col gap-1.5">
+            {KEYBOARD_ROWS.map((row, rowIdx) => (
+              <div key={rowIdx} className="flex gap-1">
+                {row.map((key, keyIdx) => {
+                  const isActive = activeKey === key;
+                  return (
+                    <KeyCap
+                      key={`${rowIdx}-${keyIdx}`}
+                      keyDef={key}
+                      isActive={isActive}
+                    />
+                  );
+                })}
               </div>
-            )}
+            ))}
           </div>
 
-          <HandGuide
-            hand="right"
-            activeFingerKey={
-              targetFinger?.hand === "right" ? targetFinger.finger : null
-            }
-          />
+          {/* Legend */}
+          <div className="mt-3 pt-3 border-t border-gray-200 flex flex-wrap gap-x-4 gap-y-1.5 justify-center">
+            {(["pinky", "ring", "middle", "index", "thumb"] as Finger[]).map(
+              (f) => (
+                <span key={f} className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium">
+                  <span className={`inline-block w-2.5 h-2.5 rounded-full ${FINGER_COLOR[f].bg}`} />
+                  {f.charAt(0).toUpperCase() + f.slice(1)}
+                </span>
+              )
+            )}
+          </div>
         </div>
-      )}
+
+        {/* ── Hand overlay: negative margin pulls hands UP over keyboard bottom ── */}
+        {showHands && (
+          <div
+            className="relative z-20 -mt-32 flex pointer-events-none"
+            style={{ opacity: 0.68 }}
+          >
+            <HandGuide
+              hand="left"
+              activeFingerKey={targetFinger?.hand === "left" ? targetFinger.finger : null}
+            />
+            <HandGuide
+              hand="right"
+              activeFingerKey={targetFinger?.hand === "right" ? targetFinger.finger : null}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
