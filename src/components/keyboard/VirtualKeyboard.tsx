@@ -99,27 +99,25 @@ function HandOverlay({ nextExpectedChar }: HandOverlayProps) {
   );
 
   return (
-    // .hands: position:absolute; height:100%; left:0; top:-10%; width:100%
-    // top is negative to push fingers up onto the key rows
+    // .hands: position:absolute; height:100%; left:0; top:-20%; width:100%
     <div className="pointer-events-none z-20" style={{
-      position: "absolute", left: 0, top: "-10%", width: "100%", height: "100%",
+      position: "absolute", left: 0, top: "-20%", width: "100%", height: "100%",
     }}>
       {isSpace ? (
-        // .hand--single-center: left:50%; top:0; transform:translateX(-50%); width:84.2%
+        // space — same position as right hand
         // eslint-disable-next-line @next/next/no-img-element
         <img src="/hands/space.png" alt=""
-          style={{ position: "absolute", left: "50%", top: 0, width: "84.2%", height: "auto",
-                   transform: "translateX(-50%)" }} />
+          style={{ position: "absolute", left: "33.3%", top: 0, width: "84.2%", height: "auto" }} />
       ) : (
         <>
-          {/* .hand--left: left:-20.5%; top:-3%; width:74.3% */}
+          {/* .hand--left: left:-20.5%; top:-13%; width:74.3% */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={`/hands/${left}.png`}  alt="left hand"
-            style={{ position: "absolute", left: "-20.5%", top: "-3%", width: "74.3%", height: "auto" }} />
-          {/* .hand--right: left:33.3%; top:0; width:84.2% */}
+            style={{ position: "absolute", left: "-20.5%", top: "-13%", width: "74.3%", height: "auto" }} />
+          {/* .hand--right: left:33.3%; top:-10%; width:84.2% */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={`/hands/${right}.png`} alt="right hand"
-            style={{ position: "absolute", left: "33.3%",  top: 0,      width: "84.2%", height: "auto" }} />
+            style={{ position: "absolute", left: "33.3%",  top: "-10%", width: "84.2%", height: "auto" }} />
         </>
       )}
     </div>
