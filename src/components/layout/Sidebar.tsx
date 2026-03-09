@@ -10,6 +10,7 @@ import {
   Settings,
   Keyboard,
   ChevronRight,
+  PenLine,
 } from "lucide-react";
 
 const navItems = [
@@ -18,6 +19,12 @@ const navItems = [
     href: "/dashboard",
     icon: BookOpen,
     description: "Lessons & curriculum",
+  },
+  {
+    label: "Practice",
+    href: "/practice",
+    icon: PenLine,
+    description: "Free-form typing practice",
   },
   {
     label: "Typing Test",
