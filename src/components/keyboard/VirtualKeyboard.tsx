@@ -57,12 +57,11 @@ function KeyCap({ keyDef, isActive }: KeyCapProps) {
               colors.bg,
               "border-transparent text-white",
               `ring-2 ${colors.ring}`,
-              "scale-105 shadow-lg -translate-y-0.5",
+              "scale-105 shadow-md -translate-y-0.5",
             ].join(" ")
           : [
               FINGER_COLOR_PASSIVE[finger],
-              "border-slate-300/20 text-slate-500",
-              "dark:text-slate-400",
+              "border-b-gray-300/60 shadow-sm",
             ].join(" "),
       ].join(" ")}
     >
@@ -74,7 +73,7 @@ function KeyCap({ keyDef, isActive }: KeyCapProps) {
           className={[
             "absolute bottom-1.5 left-1/2 -translate-x-1/2",
             "w-1 h-1 rounded-full",
-            isActive ? "bg-white/70" : "bg-slate-400/60",
+            isActive ? "bg-white/70" : "bg-gray-400/70",
           ].join(" ")}
         />
       )}
@@ -111,7 +110,7 @@ export default function VirtualKeyboard({
     <div className="flex flex-col items-center gap-4 select-none">
       {/* ── Keyboard ── */}
       <div
-        className="rounded-2xl bg-slate-800 p-3 shadow-2xl border border-slate-700/60"
+        className="rounded-2xl bg-gray-100 p-3 shadow-lg border border-gray-300"
         role="img"
         aria-label="Virtual keyboard"
       >
@@ -133,10 +132,10 @@ export default function VirtualKeyboard({
         </div>
 
         {/* Legend */}
-        <div className="mt-3 pt-3 border-t border-slate-700/50 flex flex-wrap gap-x-4 gap-y-1.5 justify-center">
+        <div className="mt-3 pt-3 border-t border-gray-300 flex flex-wrap gap-x-4 gap-y-1.5 justify-center">
           {(["pinky", "ring", "middle", "index", "thumb"] as Finger[]).map(
             (f) => (
-              <span key={f} className="flex items-center gap-1.5 text-[10px] text-slate-400">
+              <span key={f} className="flex items-center gap-1.5 text-[10px] text-gray-500 font-medium">
                 <span
                   className={`inline-block w-2.5 h-2.5 rounded-full ${FINGER_COLOR[f].bg}`}
                 />
@@ -161,16 +160,16 @@ export default function VirtualKeyboard({
           <div className="flex flex-col items-center gap-2 mb-2">
             {nextExpectedChar ? (
               <>
-                <div className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">
+                <div className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">
                   Next key
                 </div>
                 <div
                   className={[
                     "w-12 h-12 rounded-xl flex items-center justify-center",
-                    "text-xl font-bold shadow-lg",
+                    "text-xl font-bold shadow-md border-b-[3px] border-gray-300",
                     targetFinger
-                      ? `${FINGER_COLOR[targetFinger.finger].bg} text-white`
-                      : "bg-slate-700 text-slate-300",
+                      ? `${FINGER_COLOR[targetFinger.finger].bg} text-white border-transparent`
+                      : "bg-gray-200 text-gray-500",
                   ].join(" ")}
                 >
                   {nextExpectedChar === " " ? "⎵" : nextExpectedChar}
@@ -187,7 +186,7 @@ export default function VirtualKeyboard({
                 )}
               </>
             ) : (
-              <div className="w-12 h-12 rounded-xl bg-slate-700/40 flex items-center justify-center text-slate-600 text-lg">
+              <div className="w-12 h-12 rounded-xl bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-400 text-lg">
                 ✓
               </div>
             )}

@@ -35,11 +35,11 @@ export const FINGER_COLOR: Record<Finger, { bg: string; ring: string; text: stri
 };
 
 export const FINGER_COLOR_PASSIVE: Record<Finger, string> = {
-  pinky:  "bg-rose-200   dark:bg-rose-900/60",
-  ring:   "bg-amber-200  dark:bg-amber-900/60",
-  middle: "bg-emerald-200 dark:bg-emerald-900/60",
-  index:  "bg-blue-200   dark:bg-blue-900/60",
-  thumb:  "bg-purple-200 dark:bg-purple-900/60",
+  pinky:  "bg-rose-100   text-rose-700  border border-rose-200",
+  ring:   "bg-amber-100  text-amber-700 border border-amber-200",
+  middle: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+  index:  "bg-blue-100   text-blue-700  border border-blue-200",
+  thumb:  "bg-purple-100 text-purple-700 border border-purple-200",
 };
 
 // ─── Keyboard rows ────────────────────────────────────────────────────────────

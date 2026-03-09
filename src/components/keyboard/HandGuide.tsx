@@ -42,8 +42,8 @@ function FingerPath({
 
   const passiveClass =
     finger === "thumb"
-      ? "fill-slate-600"
-      : "fill-slate-700";
+      ? "fill-slate-300"
+      : "fill-slate-200";
 
   return (
     <g className="transition-all duration-200">
@@ -79,12 +79,12 @@ function FingerPath({
           <line
             x1={x + 2} y1={geo.tipY + (geo.baseY - geo.tipY) * 0.38}
             x2={x + geo.w - 2} y2={geo.tipY + (geo.baseY - geo.tipY) * 0.38}
-            className={`stroke-[1.5] ${active ? "stroke-white/30" : "stroke-slate-500"}`}
+            className={`stroke-[1.5] ${active ? "stroke-white/40" : "stroke-slate-300"}`}
           />
           <line
             x1={x + 2} y1={geo.tipY + (geo.baseY - geo.tipY) * 0.65}
             x2={x + geo.w - 2} y2={geo.tipY + (geo.baseY - geo.tipY) * 0.65}
-            className={`stroke-[1] ${active ? "stroke-white/20" : "stroke-slate-600"}`}
+            className={`stroke-[1] ${active ? "stroke-white/25" : "stroke-slate-300"}`}
           />
         </>
       )}
@@ -97,7 +97,7 @@ function FingerPath({
           width={geo.w + 6}
           height={geo.baseY - geo.tipY + 6}
           rx={geo.rx + 3}
-          className="fill-none stroke-white/60 stroke-[2] animate-pulse"
+          className="fill-none stroke-gray-700/50 stroke-[2] animate-pulse"
         />
       )}
     </g>
@@ -110,7 +110,7 @@ export default function HandGuide({ hand, activeFingerKey }: HandGuideProps) {
   return (
     <div className="flex flex-col items-center gap-1 select-none">
       {/* Label */}
-      <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+      <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">
         {hand === "left" ? "Left" : "Right"} Hand
       </span>
 
@@ -128,7 +128,7 @@ export default function HandGuide({ hand, activeFingerKey }: HandGuideProps) {
           width={PALM.width}
           height={PALM.height}
           rx={PALM.rx}
-          className="fill-slate-700"
+          className="fill-slate-200"
         />
         {/* Wrist taper */}
         <rect
@@ -137,7 +137,7 @@ export default function HandGuide({ hand, activeFingerKey }: HandGuideProps) {
           width={PALM.width - 28}
           height={20}
           rx={8}
-          className="fill-slate-700"
+          className="fill-slate-200"
         />
 
         {/* Fingers */}
