@@ -41,10 +41,38 @@ model User {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
-  records       TypingRecord[]
+  records        TypingRecord[]
+  drillProgress  DrillProgress[]
+  lastPosition   UserLastPosition?
 
   @@map("users")
 }
+
+model DrillProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  drillId     String   // e.g. "d-01-1"
+  lessonId    String   // e.g. "l-01-01"
+  modId       String   // e.g. "m-01"
+  completedAt DateTime @default(now())
+
+  @@unique([userId, drillId])
+  @@index([userId])
+  @@map("drill_progress")
+}
+
+model UserLastPosition {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  drillId   String
+  lessonId  String
+  modId     String
+  updatedAt DateTime @updatedAt
+
+  @@map("user_last_position")
+}
+
 
 model Lesson {
   id         String        @id @default(cuid())

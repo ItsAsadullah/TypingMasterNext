@@ -1,13 +1,13 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaNeon } from "@prisma/adapter-neon";
-import { Pool } from "@neondatabase/serverless";
+import { PrismaNeonHttp } from "@prisma/adapter-neon";
 
 /**
  * ---------------------------------------------------------
  *  TechHat Typing Master — Prisma Client Singleton
  * ---------------------------------------------------------
- *  Prisma 7 uses a Wasm-based client engine that requires
- *  a driver adapter. We use the Neon serverless adapter.
+ *  Prisma 7 + Neon HTTP adapter (PrismaNeonHttp).
+ *  HTTP mode works reliably in Next.js Node.js runtime
+ *  without needing a WebSocket polyfill or Pool config.
  *
  *  The globalThis pattern prevents new instances on every
  *  Next.js hot-reload in development.
@@ -21,8 +21,7 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
-  const adapter = new PrismaNeon(pool);
+  const adapter = new PrismaNeonHttp(process.env.DATABASE_URL!, {});
   return new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],

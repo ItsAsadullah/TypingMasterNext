@@ -8,15 +8,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar />
 
       {/* Main content — offset by sidebar width */}
-      <div className="ml-64 flex flex-col min-h-screen bg-gray-50">
+      <div className="ml-64 flex flex-col min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors duration-200">
         <TopBar />
         <main className="flex-1 p-6">{children}</main>
 
         {/* Footer */}
-        <footer className="px-6 py-4 border-t border-gray-200 text-center">
-          <p className="text-xs text-gray-400">
+        <footer className="px-6 py-4 border-t border-gray-200 dark:border-slate-700/60 text-center">
+          <p className="text-xs text-gray-400 dark:text-slate-500">
             &copy; {new Date().getFullYear()}{" "}
-            <span className="font-medium text-gray-500">TechHat</span> — Made
+            <span className="font-medium text-gray-500 dark:text-slate-400">TechHat</span> — Made
             with ❤️ by Md Asadullah &middot; Jhenaidah, Bangladesh
           </p>
         </footer>

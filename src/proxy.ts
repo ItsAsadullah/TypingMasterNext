@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
   if (!token) {
@@ -17,11 +17,15 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
+    "/courses/:path*",
+    "/custom-review/:path*",
     "/lessons/:path*",
     "/practice/:path*",
     "/speed-test/:path*",
     "/games/:path*",
     "/profile/:path*",
+    "/settings/:path*",
+    "/about/:path*",
     "/admin/:path*",
   ],
 };
